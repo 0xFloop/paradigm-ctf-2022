@@ -4,4 +4,8 @@ out = 'out'
 libs = ['lib']
 
 [rpc_endpoints]
+<<<<<<< HEAD
 paradigm = "http://34.123.187.206:8545/d54ec417-3fbb-4aa9-9ef1-6c30e4f91489"
+=======
+paradigm = "${PARADIGM_RPC_URL}"
+>>>>>>> c66c43bac79955af5cb710defa1b9c3afe078819
