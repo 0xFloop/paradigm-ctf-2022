@@ -4,5 +4,5 @@ out = 'out'
 libs = ['lib']
 
 [rpc_endpoints]
-paradigm = "http://34.123.187.206:8545/0a885194-cb39-49e2-903e-ab6b82e62027"
+paradigm = "http://35.188.148.32:8545/035755ee-aa76-41ed-bcee-70d4bf8c5291"
 
